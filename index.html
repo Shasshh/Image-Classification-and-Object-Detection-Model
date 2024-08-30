@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Classification</title>
+    <style>
+        body {
+            background-image: url('html-color-codes-color-tutorials.jpg');
+            background-repeat: no-repeat;
+            background-size: 100%;
+            font-family: 'Arial', sans-serif;
+            background-color:black; 
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        #container {
+            background-color: rgb(255, 2, 2);
+            padding: 30px;
+            border-radius: 25px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: top;
+        }
+
+        h1 {
+            color: #ffffff;
+        }
+
+        form {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        input {
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 10px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #result {
+            background-color: #D30B31 ;
+            margin-top: 20px;
+        }
+
+        .prediction {
+            font-size: 2em;
+            font-weight: bold;
+            color: #ffffff; 
+            margin-top: 10px;
+            text-transform: capitalize; /* Capitalize the predicted class */
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .prediction.error {
+            color: #f44336; /* Red color for error */
+        }
+
+        .prediction.show {
+            opacity: 1;
+        }
+
+        img {
+            max-width: 30%;
+            margin-top: 10px;
+            border-radius: 2px;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        img.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h1>  Image Classification  </h1>
+        <form id="imageForm" enctype="multipart/form-data">
+            <input type="file" id="imageInput" accept="image/*" required>
+            <button type="button" onclick="predictImage()">Predict</button>
+        </form>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function predictImage() {
+            const fileInput = document.getElementById('imageInput');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('Please select an image.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('http://127.0.0.1:5000/predict', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultDiv = document.getElementById('result');
+                resultDiv.innerHTML = `<p class="prediction">${data.prediction.class_label}</p>`;
+
+                const predictionElement = document.querySelector('.prediction');
+                predictionElement.classList.add('show');
+
+                const imgElement = document.createElement('img');
+                imgElement.src = `data:image/jpeg;base64, ${data.prediction.image}`;
+                imgElement.style.maxWidth = '30%';
+                resultDiv.appendChild(imgElement);
+
+                imgElement.classList.add('show');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+
+                const resultDiv = document.getElementById('result');
+                resultDiv.innerHTML = '<p class="prediction error show">An error occurred during prediction.</p>';
+            });
+        }
+    </script>
+</body>
+</html>
